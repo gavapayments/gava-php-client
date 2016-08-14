@@ -1,0 +1,21 @@
+{
+    "name": "ihatehandles/gava-php-client",
+    "description": "PHP client for the Gava API",
+    "type": "library",
+    "require": {
+        "rmccue/requests": "^1.6"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sam",
+            "email": "sam.takunda@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Gava\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
