@@ -2,8 +2,6 @@
 
 A PHP client for your Gava installation
 
----
-
 ## Creating a checkout
 
 ```php
@@ -17,13 +15,6 @@ $g = new Gava\Gava('http://gava.dev', '12345678');
 $checkoutUrl = $g->createCheckout(1, 1.00, 'http://example.com/thankyou', 'http://example.com.cart');
 
 echo "<a href='" . $checkoutUrl . "'>Make payment</a>";
-
-
-
-echo $checkout->reference;
-
-echo 'Ok';
-
 
 ```
 
