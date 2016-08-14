@@ -5,7 +5,7 @@ namespace Gava;
 use \Requests;
 
 use Gava\Exceptions\CheckoutCreationException;
-use Gava\Exceptions\CallbackException;
+use Gava\Exceptions\WebhookException;
 
 class Gava {
 
@@ -32,7 +32,7 @@ class Gava {
 
 		try
 		{
-			$response = Requests::post($apiUrl, [], $payload);	
+			$response = Requests::post($this->apiUrl . '/create', [], $payload);	
 		}
 		catch(\Exception $e)
 		{
@@ -45,7 +45,7 @@ class Gava {
 			throw new CheckoutCreationException($response->body, 1);
 		}
 
-		return $res->body;
+		return $response->body;
 	}
 
 	/**
@@ -59,7 +59,7 @@ class Gava {
 		//Listen for callback, validate with server, close checkout
 		$callback = json_decode(file_get_contents('php://input'));
 
-		if (!$callback) throw new CallbackException('Missing parameters', 1);
+		if (!$callback) throw new WebhookException('Missing parameters', 1);
 
 		$expectedProperties = array(
 			'checkoutId',
@@ -76,19 +76,19 @@ class Gava {
 
 		foreach ($expectedProperties as $property) {
 
-			if (!property_exists($callback, $property)) throw new CallbackException('Missing parameters', 1);
+			if (!property_exists($callback, $property)) throw new WebhookException('Missing parameters', 1);
 
 		}
 
 		if (!$this->signatureValid($callback))
-			throw new CallbackException('Callback signature validation failed', 1);
+			throw new WebhookException('Callback signature validation failed', 1);
 
 		if (!$checkout = $this->fetchCheckout($callback->checkoutHash))
-			throw new CallbackException('Checkout fetch failed', 1);
+			throw new WebhookException('Checkout fetch failed', 1);
 
 		//Defense: Gava doesn't yet have automated status changes from paid to not paid.
 		//And Gava will not send a webhook notification for checkouts that have not been paid for
-		if (!$checkout->paid) throw new CallbackException('Checkout not paid', 1);
+		if (!$checkout->paid) throw new WebhookException('Checkout not paid', 1);
 
 		return $checkout;
 	}
@@ -113,7 +113,7 @@ class Gava {
 		}
 		catch (\Exception $e)
 		{
-			throw new CallbackException("Checkout lookup request failed", 1);
+			throw new WebhookException("Checkout lookup request failed", 1);
 			
 		}
 
@@ -181,7 +181,7 @@ class Gava {
 
 		$signature = hash('sha512', $string . $this->secret);
 
-		return ($signature === $request['signature']);
+		return ($signature === $request->signature);
 	}
 
 }
