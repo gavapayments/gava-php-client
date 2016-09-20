@@ -2,9 +2,9 @@
 
 namespace Gava;
 
-use Requests;
 use Gava\Exceptions\CheckoutCreationException;
 use Gava\Exceptions\WebhookException;
+use Requests;
 
 class Gava
 {
@@ -59,8 +59,8 @@ class Gava
     public function createCheckout($reference, $amount, $returnUrl, $cancelUrl, $phone = null, $transactionCode = null, $method = null)
     {
         $payload = [
-            'reference' => $reference,
-            'amount' => $amount,
+            'reference'  => $reference,
+            'amount'     => $amount,
             'return_url' => $returnUrl,
             'cancel_url' => $cancelUrl,
         ];
@@ -107,7 +107,7 @@ class Gava
             throw new WebhookException('Missing parameters', 1);
         }
 
-        $expectedProperties = array(
+        $expectedProperties = [
             'checkoutId',
             'checkoutHash',
             'reference',
@@ -118,7 +118,7 @@ class Gava
             'paymentMethod',
             'note',
             'signature',
-        );
+        ];
 
         foreach ($expectedProperties as $property) {
             if (!property_exists($callback, $property)) {
@@ -171,7 +171,7 @@ class Gava
             return false;
         }
 
-        $expectedProperties = array(
+        $expectedProperties = [
             'checkoutId',
             'checkoutHash',
             'reference',
@@ -182,7 +182,7 @@ class Gava
             'paymentMethod',
             'note',
             'signature',
-        );
+        ];
 
         foreach ($expectedProperties as $property) {
             if (!property_exists($checkout, $property)) {
