@@ -18,6 +18,12 @@ echo "<a href='" . $checkoutUrl . "'>Make payment</a>";
 
 ```
 
+Pro-tip: As in the *Processing a ZIPIT payment* example code shown below, you can also pass in the phone number
+and several other details to the `createCheckout` method. You can utilize this to great effect. For example when
+working with a merchant line you can collect the customer's phone number in your app and create a checkout as shown
+above. You can then provide them the transfer instructions in your app and whenever they complete the transfer Gava
+will notify your webhook URL, without the customer ever having gone out away from your app/website.
+
 ## Receiving, validating, and processing a webhook notification
 
 The PHP client does all the work for you, so you can simply:
