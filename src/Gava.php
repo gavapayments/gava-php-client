@@ -69,10 +69,10 @@ class Gava
             $payload['phone'] = $phone;
         }
         if ($transactionCode) {
-            $payload['transactionCode'] = $transactionCode;
+            $payload['transaction_code'] = $transactionCode;
         }
         if ($method) {
-            $payload['paymentMethod'] = $method;
+            $payload['payment_method'] = $method;
         }
 
         $payload['signature'] = $this->sign($payload);
@@ -239,5 +239,21 @@ class Gava
         $signature = hash('sha512', $string.$this->secret);
 
         return $signature === $request->signature;
+    }
+
+    /**
+     * Given a checkout URL, method will extract and return the checkout hash.
+     *
+     * @param string $url Checkout URL
+     *
+     * @return string
+     */
+    public function hashFromURL($url)
+    {
+        return str_replace(
+            $this->apiUrl.'/checkout/',
+            '',
+            $url
+        );
     }
 }
