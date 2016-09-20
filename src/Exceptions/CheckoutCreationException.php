@@ -2,6 +2,6 @@
 
 namespace Gava\Exceptions;
 
-class CheckoutCreationException extends \Exception {
-
+class CheckoutCreationException extends \Exception
+{
 }

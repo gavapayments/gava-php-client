@@ -2,42 +2,38 @@
 
 namespace Gava;
 
-use \Requests;
-
+use Requests;
 use Gava\Exceptions\CheckoutCreationException;
 use Gava\Exceptions\WebhookException;
 
-class Gava {
-
+class Gava
+{
     /**
-     * Base URL of Gava installation
+     * Base URL of Gava installation.
      *
      * @var string
      */
     private $apiUrl;
 
     /**
-     * API secret key as set in Gava configs
+     * API secret key as set in Gava configs.
      *
      * @var string
      */
     private $secret;
 
     /**
-     * Extended error messages store
+     * Extended error messages store.
      *
      * @var string
      */
     private $error;
 
-
     /**
-     * Class constructor
+     * Class constructor.
      *
      * @param string $apiUrl Base URL of Gava installation
      * @param string $secret API secret key as set in Gava configs
-     *
-     * @return void
      */
     public function __construct($apiUrl, $secret)
     {
@@ -46,12 +42,12 @@ class Gava {
     }
 
     /**
-     * Creates a checkout on the $apiUrl and returns the checkout url
+     * Creates a checkout on the $apiUrl and returns the checkout url.
      *
-     * @param string    $reference  Checkout reference Id
-     * @param float     $amount     Amount to be paid by customer
-     * @param string    $returnUrl  Return URL
-     * @param string    $cancelUrl  Cancel URL
+     * @param string $reference Checkout reference Id
+     * @param float  $amount    Amount to be paid by customer
+     * @param string $returnUrl Return URL
+     * @param string $cancelUrl Cancel URL
      * @param int       (Optional)  Phone number from which payment will be/has been made
      * @param string    (Optional)  Transaction code for the payment the customer made
      * @param string    (Optional)  Set the payment method customer will use for the transaction
@@ -69,20 +65,23 @@ class Gava {
             'cancel_url' => $cancelUrl,
         ];
 
-        if ($phone) $payload['phone'] = $phone;
-        if ($transactionCode) $payload['transactionCode'] = $transactionCode;
-        if ($method) $payload['paymentMethod'] = $method;
+        if ($phone) {
+            $payload['phone'] = $phone;
+        }
+        if ($transactionCode) {
+            $payload['transactionCode'] = $transactionCode;
+        }
+        if ($method) {
+            $payload['paymentMethod'] = $method;
+        }
 
         $payload['signature'] = $this->sign($payload);
 
-        try
-        {
-            $response = Requests::post($this->apiUrl . '/create', [], $payload);    
-        }
-        catch(\Exception $e)
-        {
+        try {
+            $response = Requests::post($this->apiUrl.'/create', [], $payload);
+        } catch (\Exception $e) {
             $this->error = $response;
-            throw new CheckoutCreationException("Request failed", 1);
+            throw new CheckoutCreationException('Request failed', 1);
         }
 
         if (!$response->success) {
@@ -95,7 +94,7 @@ class Gava {
 
     /**
      * Receives, validates and returns the checkout details
-     * sent in via Gava's webhooks
+     * sent in via Gava's webhooks.
      *
      * @return object
      */
@@ -104,7 +103,9 @@ class Gava {
         //Listen for callback, validate with server, close checkout
         $callback = json_decode(file_get_contents('php://input'));
 
-        if (!$callback) throw new WebhookException('Missing parameters', 1);
+        if (!$callback) {
+            throw new WebhookException('Missing parameters', 1);
+        }
 
         $expectedProperties = array(
             'checkoutId',
@@ -116,24 +117,28 @@ class Gava {
             'transactionCode',
             'paymentMethod',
             'note',
-            'signature'
+            'signature',
         );
 
         foreach ($expectedProperties as $property) {
-
-            if (!property_exists($callback, $property)) throw new WebhookException('Missing parameters', 1);
-
+            if (!property_exists($callback, $property)) {
+                throw new WebhookException('Missing parameters', 1);
+            }
         }
 
-        if (!$this->signatureValid($callback))
+        if (!$this->signatureValid($callback)) {
             throw new WebhookException('Callback signature validation failed', 1);
+        }
 
-        if (!$checkout = $this->fetchCheckout($callback->checkoutHash))
+        if (!$checkout = $this->fetchCheckout($callback->checkoutHash)) {
             throw new WebhookException('Checkout fetch failed', 1);
+        }
 
         //Defense: Gava doesn't yet have automated status changes from paid to not paid.
         //And Gava will not send a webhook notification for checkouts that have not been paid for
-        if (!$checkout->paid) throw new WebhookException('Checkout not paid', 1);
+        if (!$checkout->paid) {
+            throw new WebhookException('Checkout not paid', 1);
+        }
 
         return $checkout;
     }
@@ -141,7 +146,7 @@ class Gava {
     /**
      * Fetches checkout with given hash.
      * A return of false generally means the checkout is not valid to us
-     * Will exit with error for the other scenarios
+     * Will exit with error for the other scenarios.
      *
      * @param string $hash Checkout hash
      *
@@ -150,21 +155,21 @@ class Gava {
     private function fetchCheckout($hash)
     {
         //Get checkout, confirm signature
-        $endpoint = $this->apiUrl . '/checkout/details/' . $hash;
+        $endpoint = $this->apiUrl.'/checkout/details/'.$hash;
 
-        try
-        {
+        try {
             $response = Requests::get($endpoint);
-        }
-        catch (\Exception $e)
-        {
-            throw new WebhookException("Checkout lookup request failed", 1);
-            
+        } catch (\Exception $e) {
+            throw new WebhookException('Checkout lookup request failed', 1);
         }
 
-        if (!$response->success) return false;
-        
-        if (!$checkout = json_decode($response->body)) return false;
+        if (!$response->success) {
+            return false;
+        }
+
+        if (!$checkout = json_decode($response->body)) {
+            return false;
+        }
 
         $expectedProperties = array(
             'checkoutId',
@@ -176,57 +181,63 @@ class Gava {
             'transactionCode',
             'paymentMethod',
             'note',
-            'signature'
+            'signature',
         );
 
         foreach ($expectedProperties as $property) {
-            if (!property_exists($checkout, $property)) return false;
+            if (!property_exists($checkout, $property)) {
+                return false;
+            }
         }
 
-        if (!$this->signatureValid($checkout)) return false;
+        if (!$this->signatureValid($checkout)) {
+            return false;
+        }
 
         return $checkout;
     }
 
-
     /**
-     * Given an iterable $payload, it signs it with the provided secret key
+     * Given an iterable $payload, it signs it with the provided secret key.
      *
-     * @param   mixed $payload Object or array
+     * @param mixed $payload Object or array
      *
-     * @return  string
+     * @return string
      */
     private function sign($payload)
     {
         $string = '';
 
         foreach ($payload as $key => $value) {
-            if ($key === 'signature') continue;
+            if ($key === 'signature') {
+                continue;
+            }
             $string .= $value;
         }
 
-        return hash('sha512', $string . $this->secret);
+        return hash('sha512', $string.$this->secret);
     }
 
     /**
-     * Given an iterable $payload, it authenticates its signature property
+     * Given an iterable $payload, it authenticates its signature property.
      *
-     * @param   mixed  $request Object or array
+     * @param mixed $request Object or array
      *
-     * @return  bool
+     * @return bool
      */
     private function signatureValid($request)
     {
         $string = '';
 
         foreach ($request as $key => $value) {
-            if ($key === 'signature') continue;
+            if ($key === 'signature') {
+                continue;
+            }
             $string .= $value;
         }
 
-        $signature = hash('sha512', $string . $this->secret);
+        $signature = hash('sha512', $string.$this->secret);
 
-        return ($signature === $request->signature);
+        return $signature === $request->signature;
     }
-
 }
