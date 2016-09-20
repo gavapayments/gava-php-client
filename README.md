@@ -2,6 +2,8 @@
 
 A PHP client for your Gava installation
 
+`composer require ihatehandles/gava-php-client`
+
 ## Creating a checkout
 
 ```php
